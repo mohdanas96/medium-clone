@@ -1,6 +1,15 @@
 import { Hono } from "hono"
+import { getPrisma } from "../../db/prismaFunction"
 
-const user = new Hono()
+const user = new Hono<{
+  Bindings: {
+    DATABASE_URL: string
+    JWT_SECRET: string
+  }
+  Vairables: {
+    userId: string
+  }
+}>()
 
 user.post("/signup", (c) => {
   return c.text("signup ")

@@ -1,9 +1,16 @@
 import { Hono } from "hono"
 
-const blog = new Hono()
+const blog = new Hono<{
+  Bindings: {
+    DATABASE_URL: string
+    JWT_SECRET: string
+  }
+  Variables: {
+    userID: string
+  }
+}>()
 
 blog.post("/", (c) => {
-  console.log("WOrking")
   return c.text("Create blog")
 })
 
