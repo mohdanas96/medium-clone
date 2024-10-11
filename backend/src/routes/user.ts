@@ -11,8 +11,8 @@ const user = new Hono<{
   }
 }>()
 
-user.post("/signup", (c) => {
-  return c.text("signup ")
+user.post("/signup", async (c) => {
+  return c.text("Signup")
 })
 
 user.post("/signin", (c) => {

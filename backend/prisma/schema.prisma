@@ -13,3 +13,14 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DATABASE_DIRECT_URL")
 }
+
+model User {
+  id        Int    @default(autoincrement())
+  username  String @unique
+  email     String @unique
+  password  String
+  firstName String
+  lastName  String
+  // profile Profile?
+  // blogs Blogs[]
+}
