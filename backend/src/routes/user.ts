@@ -1,6 +1,8 @@
-import { Hono } from "hono"
-import { getPrisma } from "../../db/prismaFunction"
-import { decode, verify, sign } from "hono/jwt"
+import { Hono } from 'hono'
+import { getPrisma } from '../../db/prismaFunction'
+import { decode, verify, sign } from 'hono/jwt'
+import { hashPassword, verifyPassword } from '../../utils/hash'
+import { getPathNoStrict } from 'hono/utils/url'
 
 const user = new Hono<{
   Bindings: {
@@ -12,7 +14,7 @@ const user = new Hono<{
   }
 }>()
 
-user.post("/signup", async (c) => {
+user.post('/signup', async (c) => {
   // create jwt token
   // zod validation
   // password hashing
@@ -31,7 +33,7 @@ user.post("/signup", async (c) => {
       },
     })
 
-    console.log(typeof user, "User")
+    console.log(typeof user, 'User')
   } catch (error) {
     console.log(error)
   }
@@ -39,16 +41,18 @@ user.post("/signup", async (c) => {
   if (!user) {
     c.status(409)
     return c.json({
-      message: "User already exists",
+      message: 'User already exists',
       statusCode: 409,
     })
   }
+
+  const hashedPassword = await hashPassword(password)
 
   try {
     const user = await prisma.user.create({
       data: {
         username,
-        password,
+        password: hashedPassword,
         firstName,
         lastName,
         email,
@@ -57,28 +61,25 @@ user.post("/signup", async (c) => {
 
     const payload = {
       sub: user.id,
-      role: "user",
+      role: 'user',
       exp: Math.floor(Date.now() / 1000) + 60 * 5,
     }
-
-    const token = await sign(payload, c.env.JWT_SECRET)
 
     c.status(200)
 
     return c.json({
-      message: "User created successfully",
+      message: 'User created successfully',
       statusCode: 200,
-      jwt: token,
     })
   } catch (error) {
     console.log(error)
     return c.json({
-      message: "Error while creating user",
+      message: 'Error while creating user',
     })
   }
 })
 
-user.post("/signin", async (c) => {
+user.post('/signin', async (c) => {
   const body = await c.req.json()
 
   const { username, password } = body
@@ -95,16 +96,17 @@ user.post("/signin", async (c) => {
     c.status(404)
 
     return c.json({
-      message: "User not found",
-      statusCode: "404",
+      message: 'User not found',
+      statusCode: '404',
     })
   }
 
-  if (user.password === password) {
+  // Not the ideal way
+  if (await verifyPassword(user.password, password)) {
     const payload = {
       sub: user.id,
-      role: "user",
-      exp: Math.floor(Date.now() / 1000) + 60 * 5,
+      role: 'user',
+      exp: Math.floor(Date.now() / 1000) + 60 * 60,
     }
 
     const token = await sign(payload, c.env.JWT_SECRET)
@@ -112,24 +114,46 @@ user.post("/signin", async (c) => {
     c.status(200)
 
     return c.json({
-      message: "User signed in successfully",
+      message: 'User signed in successfully',
       statusCode: 200,
       jwt: token,
     })
   } else {
     c.status(411)
     return c.json({
-      message: "Invalid username or password",
+      message: 'Invalid username or password',
     })
   }
 })
 
-user.put("/", (c) => {
-  return c.text("Update user")
+user.put('/update', (c) => {
+  return c.text('Update user')
 })
 
-user.delete("/delete", (c) => {
-  return c.text("delete")
+user.delete('/delete', async (c) => {
+  console.log('WOrking')
+  const prisma = getPrisma(c.env.DATABASE_URL)
+
+  const payload = c.get('jwtPayload')
+
+  try {
+    const deletedUser = await prisma.user.delete({
+      where: {
+        username: payload.sub,
+      },
+    })
+
+    if (deletedUser) {
+      c.status(200)
+
+      return c.json({
+        message: 'User removed succesfully',
+        statusCode: 200,
+      })
+    }
+  } catch (error) {
+    throw console.log(error)
+  }
 })
 
 export default user

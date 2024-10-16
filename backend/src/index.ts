@@ -1,7 +1,9 @@
-import { Hono } from "hono"
-import user from "./routes/user"
-import blog from "./routes/blog"
-import { getPrisma } from "../db/prismaFunction"
+import { Hono } from 'hono'
+import user from './routes/user'
+import blog from './routes/blog'
+import { getPrisma } from '../db/prismaFunction'
+import { jwt } from 'hono/jwt'
+import { auth } from 'hono/utils/basic-auth'
 
 const app = new Hono<{
   Bindings: {
@@ -11,14 +13,18 @@ const app = new Hono<{
   Variables: {
     userId: string
   }
-}>().basePath("/api/v1")
+}>().basePath('/api/v1')
 
-app.route("/user", user)
-app.route("/blog", blog)
+app.use('/auth/*', (c, next) => {
+  console.log('authenticaton working')
+  const authMiddleware = jwt({
+    secret: c.env.JWT_SECRET,
+  })
 
-app.get("/", (c) => {
-  getPrisma(c.env.DATABASE_URL)
-  return c.text("WOrking")
+  return authMiddleware(c, next)
 })
+
+app.route('/user', user)
+app.route('/blog', blog)
 
 export default app
