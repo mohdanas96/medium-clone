@@ -15,7 +15,7 @@ const app = new Hono<{
   }
 }>().basePath('/api/v1')
 
-app.use('/auth/*', (c, next) => {
+app.use('user/auth/*', (c, next) => {
   console.log('authenticaton working')
   const authMiddleware = jwt({
     secret: c.env.JWT_SECRET,
