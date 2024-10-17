@@ -10,7 +10,7 @@ const user = new Hono<{
     JWT_SECRET: string
   }
   Vairables: {
-    userId: string
+    userId: number
   }
 }>()
 
@@ -58,12 +58,6 @@ user.post('/signup', async (c) => {
         email,
       },
     })
-
-    const payload = {
-      sub: user.id,
-      role: 'user',
-      exp: Math.floor(Date.now() / 1000) + 60 * 5,
-    }
 
     c.status(200)
 
@@ -126,20 +120,29 @@ user.post('/signin', async (c) => {
   }
 })
 
-user.put('/update', (c) => {
+user.put('/auth/update', (c) => {
   return c.text('Update user')
 })
 
-user.delete('/delete', async (c) => {
-  console.log('WOrking')
+user.delete('/auth/delete', async (c) => {
   const prisma = getPrisma(c.env.DATABASE_URL)
 
   const payload = c.get('jwtPayload')
 
+  console.log(payload, 'PAYLOAD')
+
+  const userId = payload.sub
+
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  })
+
   try {
     const deletedUser = await prisma.user.delete({
       where: {
-        username: payload.sub,
+        id: userId,
       },
     })
 
