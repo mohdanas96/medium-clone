@@ -141,8 +141,43 @@ blog.put('/:id', async (c) => {
   }
 })
 
-blog.delete('/:id', (c) => {
-  return c.text('Delete blog')
+blog.delete('/:id', async (c) => {
+  const id = parseInt(c.req.param('id'))
+  const { sub } = c.get('jwtPayload')
+
+  const prisma = getPrisma(c.env.DATABASE_URL)
+
+  try {
+    const deletedBlog = await prisma.blogs.delete({
+      where: {
+        id,
+        authorId: sub,
+      },
+    })
+
+    if (!deletedBlog) {
+      c.status(400)
+      c.json({
+        message: 'Could not delete the user',
+        statusCode: 400,
+      })
+    }
+
+    c.status(200)
+
+    return c.json({
+      message: 'User deleted successfully',
+      statusCode: 200,
+      deletedBlog,
+    })
+  } catch (error) {
+    console.log(error)
+    c.status(500)
+    return c.json({
+      message: 'Unauthorized',
+      statusCode: 400,
+    })
+  }
 })
 
 export default blog
