@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { getPrisma } from '../../db/prismaFunction'
 
 const blog = new Hono<{
   Bindings: {
@@ -10,16 +11,91 @@ const blog = new Hono<{
   }
 }>()
 
-blog.post('/', (c) => {
-  return c.text('Create blog')
+blog.post('/', async (c) => {
+  const { title, content, published } = await c.req.json()
+
+  const prisma = getPrisma(c.env.DATABASE_URL)
+
+  const payload = c.get('jwtPayload')
+
+  try {
+    const blog = await prisma.blogs.create({
+      data: {
+        title,
+        content,
+        published,
+        authorId: payload.sub,
+      },
+    })
+
+    c.status(200)
+
+    return c.json({
+      message: 'Blog created',
+      statusCode: 200,
+      blogId: blog.id,
+    })
+  } catch (error) {
+    console.log(error)
+  }
 })
 
-blog.get('/bulk', (c) => {
-  return c.text('Get all blogs')
+blog.get('/bulk', async (c) => {
+  const prisma = getPrisma(c.env.DATABASE_URL)
+
+  try {
+    const blogs = await prisma.blogs.findMany()
+
+    c.status(200)
+
+    return c.json({
+      blogs,
+      statusCode: 200,
+    })
+  } catch (error) {
+    console.log(error)
+  }
 })
 
-blog.get('/:id', (c) => {
-  return c.text('get a specific blog')
+blog.get('/:id', async (c) => {
+  const id = c.req.param('id')
+
+  if (!id) {
+    c.status(411)
+    return c.json({
+      message: 'id is required as a parameter',
+      statusCode: 411,
+    })
+  }
+
+  const prisma = getPrisma(c.env.DATABASE_URL)
+
+  try {
+    const blog = await prisma.blogs.findUnique({
+      where: {
+        id: parseInt(id),
+      },
+    })
+
+    if (!blog) {
+      c.status(404)
+      return c.json({
+        message: 'Blog not found',
+        statusCode: 404,
+      })
+    }
+
+    c.status(200)
+    return c.json({
+      blog,
+      statusCode: 200,
+    })
+  } catch (error) {
+    console.log(error)
+    return c.json({
+      message: 'Internal server error',
+    })
+  }
 })
 
 blog.put('/', (c) => {
