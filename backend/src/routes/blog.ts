@@ -98,8 +98,47 @@ blog.get('/:id', async (c) => {
   }
 })
 
-blog.put('/', (c) => {
-  return c.text('update blog')
+blog.put('/:id', async (c) => {
+  const data = await c.req.json()
+  const id = parseInt(c.req.param('id'))
+  const { sub } = c.get('jwtPayload')
+
+  const prisma = getPrisma(c.env.DATABASE_URL)
+
+  try {
+    const updatedBlog = await prisma.blogs.update({
+      where: {
+        id,
+        authorId: sub,
+      },
+      data: {
+        title: data.title,
+        content: data.content,
+      },
+    })
+
+    if (!updatedBlog) {
+      c.status(400)
+      return c.json({
+        message: "Couldn't update blog",
+        statusCode: 400,
+      })
+    }
+
+    c.status(200)
+    return c.json({
+      message: 'Blog updated',
+      statusCode: 200,
+      updatedBlog,
+    })
+  } catch (error) {
+    console.log(error)
+    c.status(400)
+    return c.json({
+      message: "Couldn't update blog",
+      statusCode: 400,
+    })
+  }
 })
 
 blog.delete('/:id', (c) => {
