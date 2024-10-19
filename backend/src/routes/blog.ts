@@ -114,6 +114,7 @@ blog.put('/:id', async (c) => {
       data: {
         title: data.title,
         content: data.content,
+        published: data.published,
       },
     })
 

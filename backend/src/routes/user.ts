@@ -120,8 +120,57 @@ user.post('/signin', async (c) => {
   }
 })
 
-user.put('/auth/update', (c) => {
-  return c.text('Update user')
+user.put('/auth/update', async (c) => {
+  const { username, firstName, lastName } = await c.req.json()
+
+  const prisma = getPrisma(c.env.DATABASE_URL)
+
+  const { sub } = c.get('jwtPayload')
+
+  try {
+    const userExist = await prisma.user.findUnique({
+      where: {
+        username,
+      },
+    })
+
+    if (userExist) {
+      c.status(409)
+
+      return c.json({
+        message: 'Username is taken',
+        statusCode: 409,
+      })
+    }
+  } catch (error) {
+    console.log(error)
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: {
+      id: sub,
+    },
+    data: {
+      username,
+      firstName,
+      lastName,
+    },
+  })
+
+  if (!updatedUser) {
+    c.status(503)
+    return c.json({
+      message: 'Updation failed try again after sometime',
+      statusCode: 503,
+    })
+  }
+
+  c.status(200)
+  return c.json({
+    message: 'User updated succesfully',
+    statusCode: 200,
+    updatedUser,
+  })
 })
 
 user.delete('/auth/delete', async (c) => {
