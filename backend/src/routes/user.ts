@@ -178,8 +178,6 @@ user.delete('/auth/delete', async (c) => {
 
   const payload = c.get('jwtPayload')
 
-  console.log(payload, 'PAYLOAD')
-
   const userId = payload.sub
 
   const user = await prisma.user.findUnique({
@@ -188,24 +186,32 @@ user.delete('/auth/delete', async (c) => {
     },
   })
 
-  try {
-    const deletedUser = await prisma.user.delete({
-      where: {
-        id: userId,
-      },
-    })
-
-    if (deletedUser) {
-      c.status(200)
-
-      return c.json({
-        message: 'User removed succesfully',
-        statusCode: 200,
+  if (user) {
+    try {
+      const deletedUser = await prisma.user.delete({
+        where: {
+          id: userId,
+        },
       })
+
+      if (deletedUser) {
+        c.status(200)
+
+        return c.json({
+          message: 'User removed succesfully',
+          statusCode: 200,
+        })
+      }
+    } catch (error) {
+      throw console.log(error)
     }
-  } catch (error) {
-    throw console.log(error)
   }
+
+  c.status(404)
+  return c.json({
+    message: 'User not found',
+    statusCode: 404,
+  })
 })
 
 export default user
