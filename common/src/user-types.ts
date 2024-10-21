@@ -1,6 +1,6 @@
 import z from 'zod'
 
-const signupInput = z.object({
+export const signupInput = z.object({
   username: z.string(),
   password: z.string(),
   email: z.string().email({ message: 'Invalid email address' }),
@@ -8,12 +8,12 @@ const signupInput = z.object({
   lastName: z.string(),
 })
 
-const signinInput = z.object({
+export const signinInput = z.object({
   username: z.string(),
   password: z.string(),
 })
 
-const updateUserInput = z.object({
+export const updateUserInput = z.object({
   username: z.string().nullable(),
   firstName: z.string().nullable(),
   lastName: z.string().nullable(),
