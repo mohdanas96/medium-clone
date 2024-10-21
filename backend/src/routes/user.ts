@@ -2,7 +2,10 @@ import { Hono } from 'hono'
 import { getPrisma } from '../../db/prismaFunction'
 import { decode, verify, sign } from 'hono/jwt'
 import { hashPassword, verifyPassword } from '../../utils/hash'
-import { getPathNoStrict } from 'hono/utils/url'
+import {
+  signupInput,
+  signinInput,
+} from '@mohdanas/common-medium/dist/user-types'
 
 const user = new Hono<{
   Bindings: {
@@ -15,11 +18,17 @@ const user = new Hono<{
 }>()
 
 user.post('/signup', async (c) => {
-  // create jwt token
-  // zod validation
-  // password hashing
-
   const body = await c.req.json()
+
+  const validationSuccess = signupInput.safeParse(body)
+
+  if (!validationSuccess.success) {
+    c.status(400)
+    return c.json({
+      message: 'Invalid inputs',
+      statusCode: 400,
+    })
+  }
 
   const { username, password, firstName, lastName, email } = body
 
