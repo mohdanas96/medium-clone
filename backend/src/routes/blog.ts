@@ -1,5 +1,9 @@
 import { Hono } from 'hono'
 import { getPrisma } from '../../db/prismaFunction'
+import {
+  createBlogInputs,
+  updateBlogInputs,
+} from '@mohdanas/common-medium/dist/blog-types'
 
 const blog = new Hono<{
   Bindings: {
@@ -12,7 +16,19 @@ const blog = new Hono<{
 }>()
 
 blog.post('/', async (c) => {
-  const { title, content, published } = await c.req.json()
+  const body = await c.req.json()
+
+  const inputValidation = createBlogInputs.safeParse(body)
+
+  if (!inputValidation.success) {
+    c.status(422)
+    return c.json({
+      message: 'Invalid inputs',
+      statusCode: 422,
+    })
+  }
+
+  const { title, content, published } = body
 
   const prisma = getPrisma(c.env.DATABASE_URL)
 
@@ -100,6 +116,17 @@ blog.get('/:id', async (c) => {
 
 blog.put('/:id', async (c) => {
   const data = await c.req.json()
+
+  const inputValidation = updateBlogInputs.safeParse(data)
+
+  if (!inputValidation.success) {
+    c.status(422)
+    return c.json({
+      message: 'Invalid inputs',
+      statusCode: 422,
+    })
+  }
+
   const id = parseInt(c.req.param('id'))
   const { sub } = c.get('jwtPayload')
 

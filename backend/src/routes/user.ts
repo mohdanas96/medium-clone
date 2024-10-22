@@ -5,6 +5,7 @@ import { hashPassword, verifyPassword } from '../../utils/hash'
 import {
   signupInput,
   signinInput,
+  updateUserInput,
 } from '@mohdanas/common-medium/dist/user-types'
 
 const user = new Hono<{
@@ -20,9 +21,9 @@ const user = new Hono<{
 user.post('/signup', async (c) => {
   const body = await c.req.json()
 
-  const validationSuccess = signupInput.safeParse(body)
+  const inputValidation = signupInput.safeParse(body)
 
-  if (!validationSuccess.success) {
+  if (!inputValidation.success) {
     c.status(400)
     return c.json({
       message: 'Invalid inputs',
@@ -47,7 +48,7 @@ user.post('/signup', async (c) => {
     console.log(error)
   }
 
-  if (!user) {
+  if (user) {
     c.status(409)
     return c.json({
       message: 'User already exists',
@@ -87,6 +88,16 @@ user.post('/signin', async (c) => {
 
   const { username, password } = body
 
+  const inputValidation = signinInput.safeParse(body)
+
+  if (!inputValidation.success) {
+    c.status(400)
+    return c.json({
+      message: 'Invalid inputs',
+      statusCode: 400,
+    })
+  }
+
   const prisma = getPrisma(c.env.DATABASE_URL)
 
   const user = await prisma.user.findUnique({
@@ -104,7 +115,6 @@ user.post('/signin', async (c) => {
     })
   }
 
-  // Not the ideal way
   if (await verifyPassword(user.password, password)) {
     const payload = {
       sub: user.id,
@@ -130,7 +140,19 @@ user.post('/signin', async (c) => {
 })
 
 user.put('/auth/update', async (c) => {
-  const { username, firstName, lastName } = await c.req.json()
+  const body = await c.req.json()
+
+  const inputValidation = updateUserInput.safeParse(body)
+
+  if (!inputValidation.success) {
+    c.status(400)
+    return c.json({
+      message: 'Invalid inputs',
+      statusCode: 400,
+    })
+  }
+
+  const { username, firstName, lastName } = body
 
   const prisma = getPrisma(c.env.DATABASE_URL)
 
