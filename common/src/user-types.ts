@@ -14,9 +14,18 @@ export const signinInput = z.object({
 })
 
 export const updateUserInput = z.object({
-  username: z.string().nullable(),
-  firstName: z.string().nullable(),
-  lastName: z.string().nullable(),
+  username: z
+    .string()
+    .nullable()
+    .transform((value) => value ?? NaN),
+  firstName: z
+    .string()
+    .nullable()
+    .transform((value) => value ?? NaN),
+  lastName: z
+    .string()
+    .nullable()
+    .transform((value) => value ?? NaN),
 })
 
 export type SignupParams = z.infer<typeof signupInput>

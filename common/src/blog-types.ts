@@ -7,9 +7,18 @@ export const createBlogInputs = z.object({
 })
 
 export const updateBlogInputs = z.object({
-  title: z.string().nullable(),
-  content: z.string().nullable(),
-  published: z.boolean().nullable(),
+  title: z
+    .string()
+    .nullable()
+    .transform((value) => value ?? NaN),
+  content: z
+    .string()
+    .nullable()
+    .transform((value) => value ?? NaN),
+  published: z
+    .boolean()
+    .nullable()
+    .transform((value) => value ?? NaN),
 })
 
 export type CreateBlogParams = z.infer<typeof createBlogInputs>
