@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import './App.css'
-import { User } from './pages/User'
+import { Signup } from './pages/Signup'
 import { Blog } from './pages/Blog'
 
 function App() {
@@ -8,7 +8,7 @@ function App() {
     <>
       <BrowserRouter>
         <Routes>
-          <Route path="/user" Component={User} />
+          <Route path="/user" Component={Signup} />
           <Route path="/blog" Component={Blog} />
         </Routes>
       </BrowserRouter>

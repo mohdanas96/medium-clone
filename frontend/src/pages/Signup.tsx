@@ -1,6 +1,6 @@
 import Auth from '../components/Auth'
 
-export const User = () => {
+export const Signup = () => {
   return (
     <div>
       <Auth />
