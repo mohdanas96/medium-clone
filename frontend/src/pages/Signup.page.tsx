@@ -1,10 +1,10 @@
-import Auth from '../components/Auth'
+import Signup from '../components/Signup'
 import Quote from '../components/Quote'
 
-export const Signup = () => {
+export const SignUpPage = () => {
   return (
     <div className="grid md:grid-cols-2">
-      <Auth />
+      <Signup />
       <Quote />
     </div>
   )
