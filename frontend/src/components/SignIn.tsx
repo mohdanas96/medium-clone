@@ -4,6 +4,7 @@ import { SigninParams } from '@mohdanas/common-medium/dist/user-types'
 import AuthHeading from './AuthHeading'
 import axios from 'axios'
 import { BASE_URL } from '../../config'
+import { useNavigate } from 'react-router-dom'
 
 const SignIn = () => {
   const [signInParams, setSignInParams] = useState<SigninParams>({
@@ -11,17 +12,26 @@ const SignIn = () => {
     password: '',
   })
 
+  const navigate = useNavigate()
+
   const signInHandler = async () => {
-    const response = await axios.post(
-      `${BASE_URL}/api/v1/user/signin`,
-      signInParams
-    )
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/api/v1/user/signin`,
+        signInParams
+      )
 
-    const data = response.data()
+      const data = response.data
 
-    console.log(data)
+      console.log(data)
 
-    localStorage.setItem('jwtKey', data.jwt)
+      localStorage.setItem('jwtKey', data.jwt)
+
+      navigate('/')
+    } catch (error) {
+      console.log(error)
+      alert('Sign in failed, try again.')
+    }
   }
   return (
     <div className="flex justify-center">

@@ -2,6 +2,9 @@ import { useState } from 'react'
 import LabelledInputBox from './LabelledInputBox'
 import { SignupParams } from '@mohdanas/common-medium/dist/user-types'
 import AuthHeading from './AuthHeading'
+import axios from 'axios'
+import { BASE_URL } from '../../config'
+import { useNavigate } from 'react-router-dom'
 
 const Signup = () => {
   const [signupParams, setSignupParams] = useState<SignupParams>({
@@ -11,6 +14,30 @@ const Signup = () => {
     firstName: '',
     lastName: '',
   })
+
+  const navigate = useNavigate()
+
+  const signupHandler = async () => {
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/api/v1/user/signup`,
+        signupParams
+      )
+
+      const data = response.data
+
+      console.log(data)
+
+      if (data.statusCode === 200) {
+        navigate('/signin')
+      } else {
+        alert('Error while signin up user')
+      }
+    } catch (error) {
+      console.log(error)
+      alert('Error while signing up user')
+    }
+  }
 
   return (
     <div className="flex justify-center">
@@ -63,13 +90,7 @@ const Signup = () => {
         />
 
         <div className="w-full flex justify-center mt-5 bg-black text-white p-2 rounded-md hover:cursor-pointer">
-          <button
-            onClick={() => {
-              console.log(signupParams)
-            }}
-          >
-            Sign up
-          </button>
+          <button onClick={signupHandler}>Sign up</button>
         </div>
       </div>
     </div>
