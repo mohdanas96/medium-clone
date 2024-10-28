@@ -5,6 +5,7 @@ import { getPrisma } from '../db/prismaFunction'
 import { jwt } from 'hono/jwt'
 import { auth } from 'hono/utils/basic-auth'
 import jwtAuthenticaton from '../utils/authMiddleware'
+import { cors } from 'hono/cors'
 
 const app = new Hono<{
   Bindings: {
@@ -15,6 +16,8 @@ const app = new Hono<{
     userId: string
   }
 }>().basePath('/api/v1')
+
+app.use('/*', cors())
 
 app.use('user/auth/*', jwtAuthenticaton)
 app.use('blog/*', jwtAuthenticaton)

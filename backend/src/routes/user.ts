@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { getPrisma } from '../../db/prismaFunction'
-import { decode, verify, sign } from 'hono/jwt'
+import { sign } from 'hono/jwt'
 import { hashPassword, verifyPassword } from '../../utils/hash'
 import {
   signupInput,
@@ -43,23 +43,24 @@ user.post('/signup', async (c) => {
       },
     })
 
-    console.log(typeof user, 'User')
+    if (user) {
+      c.status(409)
+      return c.json({
+        user,
+        message: 'User already exists',
+        statusCode: 409,
+      })
+    }
+
+    console.log(user)
   } catch (error) {
     console.log(error)
-  }
-
-  if (user) {
-    c.status(409)
-    return c.json({
-      message: 'User already exists',
-      statusCode: 409,
-    })
   }
 
   const hashedPassword = await hashPassword(password)
 
   try {
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
         username,
         password: hashedPassword,
